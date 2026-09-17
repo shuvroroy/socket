@@ -1533,15 +1533,16 @@ If you do not want to run these, they can simply be skipped like this:
 vendor/bin/phpunit --exclude-group internet
 ```
 
-To check the source code with PHPStan at its maximum level, use PHP 7.4+ and run:
+To check the source code with PHPStan at its maximum level, run:
 
 ```bash
-composer install --working-dir=tools/phpstan
-tools/phpstan/vendor/bin/phpstan analyse
+vendor/bin/phpstan analyse
 ```
 
-PHPStan is installed separately so the library and its test suite continue to
-support PHP 7.1. The analysis targets this minimum supported PHP version.
+Composer installs a PHPStan release compatible with your PHP version:
+PHPStan 1.4 on PHP 7.1, PHPStan 1.12 on PHP 7.2–7.3, and PHPStan 2
+on PHP 7.4+. Each runs at its maximum level and analyses compatibility with PHP 7.1.
+CI runs this check on the same PHP and operating system matrix as PHPUnit.
 
 ## License
 

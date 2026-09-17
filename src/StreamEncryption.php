@@ -125,8 +125,7 @@ class StreamEncryption
             return true;
         });
 
-        // PHP accepts bitwise combinations of crypto methods; PHPStan only lists individual constants and a few masks.
-        $result = \stream_socket_enable_crypto($socket, $toggle, $method); // @phpstan-ignore argument.type
+        $result = \stream_socket_enable_crypto($socket, $toggle, $method);
 
         \restore_error_handler();
 

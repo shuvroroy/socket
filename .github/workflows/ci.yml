@@ -6,17 +6,31 @@ on:
 
 jobs:
   PHPStan:
-    name: PHPStan
-    runs-on: ubuntu-24.04
+    name: PHPStan (PHP ${{ matrix.php }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-24.04
+        php:
+          - 8.5
+          - 8.4
+          - 8.3
+          - 8.2
+          - 8.1
+          - 8.0
+          - 7.4
+          - 7.3
+          - 7.2
+          - 7.1
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5'
+          php-version: ${{ matrix.php }}
           coverage: none
       - run: composer install
-      - run: composer install --working-dir=tools/phpstan
-      - run: tools/phpstan/vendor/bin/phpstan analyse --no-progress
+      - run: vendor/bin/phpstan analyse --no-progress
 
   PHPUnit:
     name: PHPUnit (PHP ${{ matrix.php }} on ${{ matrix.os }})

@@ -161,6 +161,7 @@ final class TcpServer extends EventEmitter implements ServerInterface
             );
         }
 
+        /** @var array{scheme: string, host: string, port: int} $parts */
         if (@\inet_pton(\trim($parts['host'], '[]')) === false) {
             throw new \InvalidArgumentException(
                 'Given URI "' . $uri . '" does not contain a valid host IP (EINVAL)',

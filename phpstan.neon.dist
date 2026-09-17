@@ -5,3 +5,10 @@ parameters:
     phpVersion: 70100
     # Retain runtime guards for older supported Promise implementations.
     treatPhpDocTypesAsCertain: false
+    # The crypto bitmask signature is already correct in older PHPStan releases.
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # PHP accepts combined crypto flags; some PHPStan versions only list individual constants.
+        -
+            message: '#^Parameter \#3 \$crypto_method of function stream_socket_enable_crypto expects .+, int given\.$#'
+            path: src/StreamEncryption.php

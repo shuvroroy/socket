@@ -26,7 +26,7 @@ final class DnsConnector implements ConnectorInterface
         if (\strpos($uri, '://') === false) {
             $uri = 'tcp://' . $uri;
             $parts = \parse_url($uri);
-            if (isset($parts['scheme'])) {
+            if ($parts !== false && isset($parts['scheme'])) {
                 unset($parts['scheme']);
             }
         } else {

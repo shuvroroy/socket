@@ -276,14 +276,14 @@ final class HappyEyeBallsConnectionBuilder
 
         // cancel pending connection attempts
         foreach ($this->connectionPromises as $connectionPromise) {
-            if ($connectionPromise instanceof PromiseInterface && \is_callable([$connectionPromise, 'cancel'])) {
+            if (\is_callable([$connectionPromise, 'cancel'])) {
                 $connectionPromise->cancel();
             }
         }
 
         // cancel pending DNS resolution (cancel IPv4 first in case it is awaiting IPv6 resolution delay)
         foreach (\array_reverse($this->resolverPromises) as $resolverPromise) {
-            if ($resolverPromise instanceof PromiseInterface && \is_callable([$resolverPromise, 'cancel'])) {
+            if (\is_callable([$resolverPromise, 'cancel'])) {
                 $resolverPromise->cancel();
             }
         }
@@ -324,12 +324,16 @@ final class HappyEyeBallsConnectionBuilder
         $this->ipsCount += \count($ips);
         $connectQueueStash = $this->connectQueue;
         $this->connectQueue = [];
-        while (\count($connectQueueStash) > 0 || \count($ips) > 0) {
-            if (\count($ips) > 0) {
-                $this->connectQueue[] = \array_shift($ips);
+        while ($connectQueueStash || $ips) {
+            if ($ips) {
+                $ip = \array_shift($ips);
+                assert($ip !== null);
+                $this->connectQueue[] = $ip;
             }
-            if (\count($connectQueueStash) > 0) {
-                $this->connectQueue[] = \array_shift($connectQueueStash);
+            if ($connectQueueStash) {
+                $ip = \array_shift($connectQueueStash);
+                assert($ip !== null);
+                $this->connectQueue[] = $ip;
             }
         }
     }

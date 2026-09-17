@@ -6,4 +6,3 @@
 /phpunit.xml.legacy export-ignore
 /phpstan.neon.dist export-ignore
 /tests/ export-ignore
-/tools/ export-ignore
