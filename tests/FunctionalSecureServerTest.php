@@ -81,7 +81,8 @@ class FunctionalSecureServerTest extends TestCase
         $server->close();
     }
 
-    public function testClientUsesTls12WhenCryptoMethodIsExplicitlyConfiguredByClient()
+    /** @dataProvider provideClientCryptoMethods */
+    public function testClientUsesTls12WhenCryptoMethodIsExplicitlyConfiguredByClient($method)
     {
         $server = new TcpServer(0);
         $server = new SecureServer($server, null, [
@@ -90,7 +91,7 @@ class FunctionalSecureServerTest extends TestCase
 
         $connector = new SecureConnector(new TcpConnector(), null, [
             'verify_peer' => false,
-            'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT
+            'crypto_method' => $method
         ]);
         $promise = $connector->connect($server->getAddress());
 
@@ -108,12 +109,21 @@ class FunctionalSecureServerTest extends TestCase
         $server->close();
     }
 
-    public function testClientUsesTls12WhenCryptoMethodIsExplicitlyConfiguredByServer()
+    public function provideClientCryptoMethods()
+    {
+        return [
+            'single method' => [STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT],
+            'combined methods' => [STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT]
+        ];
+    }
+
+    /** @dataProvider provideServerCryptoMethods */
+    public function testClientUsesTls12WhenCryptoMethodIsExplicitlyConfiguredByServer($method)
     {
         $server = new TcpServer(0);
         $server = new SecureServer($server, null, [
             'local_cert' => __DIR__ . '/../examples/localhost.pem',
-            'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_2_SERVER
+            'crypto_method' => $method
         ]);
 
         $connector = new SecureConnector(new TcpConnector(), null, [
@@ -133,6 +143,14 @@ class FunctionalSecureServerTest extends TestCase
 
         $client->close();
         $server->close();
+    }
+
+    public function provideServerCryptoMethods()
+    {
+        return [
+            'single method' => [STREAM_CRYPTO_METHOD_TLSv1_2_SERVER],
+            'combined methods' => [STREAM_CRYPTO_METHOD_TLSv1_1_SERVER | STREAM_CRYPTO_METHOD_TLSv1_2_SERVER]
+        ];
     }
 
     public function testClientUsesTls10WhenCryptoMethodIsExplicitlyConfiguredByClient()

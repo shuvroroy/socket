@@ -125,7 +125,11 @@ class StreamEncryption
             return true;
         });
 
-        $result = \stream_socket_enable_crypto($socket, $toggle, $method);
+        if ($toggle) {
+            // Configure the full crypto bitmask through the SSL context, including combined protocol flags.
+            \stream_context_set_option($socket, 'ssl', 'crypto_method', $method);
+        }
+        $result = \stream_socket_enable_crypto($socket, $toggle);
 
         \restore_error_handler();
 
