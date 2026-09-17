@@ -13,6 +13,7 @@ connections for [ReactPHP](https://reactphp.org/).
 > The upcoming v3 release will be the way forward for this package. However,
 > we will still actively support v1 for those not yet on the latest version.
 > See also [installation instructions](#install) for more details.
+> Custom implementations should follow the [v3 type declaration upgrade guide](UPGRADE.md).
 
 The socket library provides re-usable interfaces for a socket-layer
 server and client based on the [`EventLoop`](https://github.com/reactphp/event-loop)
@@ -1531,6 +1532,16 @@ If you do not want to run these, they can simply be skipped like this:
 ```bash
 vendor/bin/phpunit --exclude-group internet
 ```
+
+To check the source code with PHPStan at its maximum level, use PHP 7.4+ and run:
+
+```bash
+composer install --working-dir=tools/phpstan
+tools/phpstan/vendor/bin/phpstan analyse
+```
+
+PHPStan is installed separately so the library and its test suite continue to
+support PHP 7.1. The analysis targets this minimum supported PHP version.
 
 ## License
 

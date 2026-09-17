@@ -5,6 +5,19 @@ on:
   pull_request:
 
 jobs:
+  PHPStan:
+    name: PHPStan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+      - run: composer install
+      - run: composer install --working-dir=tools/phpstan
+      - run: tools/phpstan/vendor/bin/phpstan analyse --no-progress
+
   PHPUnit:
     name: PHPUnit (PHP ${{ matrix.php }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
