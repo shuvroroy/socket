@@ -82,7 +82,7 @@ class FunctionalSecureServerTest extends TestCase
     }
 
     /** @dataProvider provideClientCryptoMethods */
-    public function testClientUsesTls12WhenCryptoMethodIsExplicitlyConfiguredByClient($method)
+    public function testClientUsesExpectedTlsVersionWhenCryptoMethodIsExplicitlyConfiguredByClient($method, $expectedProtocol)
     {
         $server = new TcpServer(0);
         $server = new SecureServer($server, null, [
@@ -95,30 +95,38 @@ class FunctionalSecureServerTest extends TestCase
         ]);
         $promise = $connector->connect($server->getAddress());
 
-        /* @var ConnectionInterface $client */
-        $client = await(timeout($promise, self::TIMEOUT));
+        try {
+            /* @var ConnectionInterface $client */
+            $client = await(timeout($promise, self::TIMEOUT));
 
-        $this->assertInstanceOf(Connection::class, $client);
-        $this->assertTrue(isset($client->stream));
+            $this->assertInstanceOf(Connection::class, $client);
+            $this->assertTrue(isset($client->stream));
 
-        $meta = stream_get_meta_data($client->stream);
-        $this->assertTrue(isset($meta['crypto']['protocol']));
-        $this->assertEquals('TLSv1.2', $meta['crypto']['protocol']);
-
-        $client->close();
-        $server->close();
+            $meta = stream_get_meta_data($client->stream);
+            $this->assertTrue(isset($meta['crypto']['protocol']));
+            // Older PHP versions expose TLS 1.3 only through the cipher version.
+            $this->assertEquals($expectedProtocol, $meta['crypto']['protocol'] === 'UNKNOWN' ? $meta['crypto']['cipher_version'] : $meta['crypto']['protocol']);
+        } finally {
+            if (isset($client)) {
+                $client->close();
+            }
+            $server->close();
+        }
     }
 
     public function provideClientCryptoMethods()
     {
+        // PHP < 7.3 does not cap combined protocol flags at TLS 1.2 with OpenSSL 1.1.1+.
+        $combinedProtocol = PHP_VERSION_ID < 70300 && $this->supportsTls13() ? 'TLSv1.3' : 'TLSv1.2';
+
         return [
-            'single method' => [STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT],
-            'combined methods' => [STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT]
+            'single method' => [STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT, 'TLSv1.2'],
+            'combined methods' => [STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT, $combinedProtocol]
         ];
     }
 
     /** @dataProvider provideServerCryptoMethods */
-    public function testClientUsesTls12WhenCryptoMethodIsExplicitlyConfiguredByServer($method)
+    public function testClientUsesExpectedTlsVersionWhenCryptoMethodIsExplicitlyConfiguredByServer($method, $expectedProtocol)
     {
         $server = new TcpServer(0);
         $server = new SecureServer($server, null, [
@@ -131,25 +139,33 @@ class FunctionalSecureServerTest extends TestCase
         ]);
         $promise = $connector->connect($server->getAddress());
 
-        /* @var ConnectionInterface $client */
-        $client = await(timeout($promise, self::TIMEOUT));
+        try {
+            /* @var ConnectionInterface $client */
+            $client = await(timeout($promise, self::TIMEOUT));
 
-        $this->assertInstanceOf(Connection::class, $client);
-        $this->assertTrue(isset($client->stream));
+            $this->assertInstanceOf(Connection::class, $client);
+            $this->assertTrue(isset($client->stream));
 
-        $meta = stream_get_meta_data($client->stream);
-        $this->assertTrue(isset($meta['crypto']['protocol']));
-        $this->assertEquals('TLSv1.2', $meta['crypto']['protocol']);
-
-        $client->close();
-        $server->close();
+            $meta = stream_get_meta_data($client->stream);
+            $this->assertTrue(isset($meta['crypto']['protocol']));
+            // Older PHP versions expose TLS 1.3 only through the cipher version.
+            $this->assertEquals($expectedProtocol, $meta['crypto']['protocol'] === 'UNKNOWN' ? $meta['crypto']['cipher_version'] : $meta['crypto']['protocol']);
+        } finally {
+            if (isset($client)) {
+                $client->close();
+            }
+            $server->close();
+        }
     }
 
     public function provideServerCryptoMethods()
     {
+        // PHP < 7.3 does not cap combined protocol flags at TLS 1.2 with OpenSSL 1.1.1+.
+        $combinedProtocol = PHP_VERSION_ID < 70300 && $this->supportsTls13() ? 'TLSv1.3' : 'TLSv1.2';
+
         return [
-            'single method' => [STREAM_CRYPTO_METHOD_TLSv1_2_SERVER],
-            'combined methods' => [STREAM_CRYPTO_METHOD_TLSv1_1_SERVER | STREAM_CRYPTO_METHOD_TLSv1_2_SERVER]
+            'single method' => [STREAM_CRYPTO_METHOD_TLSv1_2_SERVER, 'TLSv1.2'],
+            'combined methods' => [STREAM_CRYPTO_METHOD_TLSv1_1_SERVER | STREAM_CRYPTO_METHOD_TLSv1_2_SERVER, $combinedProtocol]
         ];
     }
 
